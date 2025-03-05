@@ -37,7 +37,7 @@ const updateFunction = async (req, res) => {
     const updatedFunction = await FunctionModel.findByIdAndUpdate(
       id,
       { name, description, area },
-      { new: true } // Devuelve el objeto actualizado
+      { new: true }
     );
 
     if (!updatedFunction) {
@@ -69,5 +69,35 @@ const deleteFunction = async (req, res) => {
   }
 };
 
-module.exports = { getFunctions, createFunction, updateFunction, deleteFunction };
+// ✅ Carga masiva de funciones
+const bulkCreateFunctions = async (req, res) => {
+  try {
+    const functionsArray = req.body;
 
+    if (!Array.isArray(functionsArray) || functionsArray.length === 0) {
+      return res.status(400).json({ error: "Debes enviar un array con funciones." });
+    }
+
+    // Validación opcional por si quieres asegurarte de que todos tienen name, description y area
+    const invalidEntries = functionsArray.filter(
+      (func) => !func.name || !func.description || !func.area
+    );
+    if (invalidEntries.length > 0) {
+      return res.status(400).json({ error: "Todas las funciones deben tener 'name', 'description' y 'area'." });
+    }
+
+    await FunctionModel.insertMany(functionsArray);
+    res.status(201).json({ message: "Funciones guardadas correctamente." });
+  } catch (error) {
+    console.error("Error en bulkCreateFunctions:", error);
+    res.status(500).json({ error: "Error al guardar las funciones masivamente", details: error.message });
+  }
+};
+
+module.exports = {
+  getFunctions,
+  createFunction,
+  updateFunction,
+  deleteFunction,
+  bulkCreateFunctions
+};
