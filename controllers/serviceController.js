@@ -69,4 +69,36 @@ const deleteService = async (req, res) => {
   }
 };
 
-module.exports = { getServices, createService, updateService, deleteService };
+// Carga masiva de servicios
+const bulkCreateServices = async (req, res) => {
+  try {
+    const servicesArray = req.body;
+
+    if (!Array.isArray(servicesArray) || servicesArray.length === 0) {
+      return res.status(400).json({ error: "Debes enviar un array con servicios." });
+    }
+
+    const invalidEntries = servicesArray.filter(
+      (service) => !service.name || !service.description || !service.area
+    );
+
+    if (invalidEntries.length > 0) {
+      return res.status(400).json({ error: "Todos los servicios deben tener 'name', 'description' y 'area'." });
+    }
+
+    await ServiceModel.insertMany(servicesArray);
+    res.status(201).json({ message: "Servicios guardados correctamente." });
+  } catch (error) {
+    console.error("Error en bulkCreateServices:", error);
+    res.status(500).json({ error: "Error al guardar los servicios masivamente", details: error.message });
+  }
+};
+
+module.exports = {
+  getServices,
+  createService,
+  updateService,
+  deleteService,
+  bulkCreateServices
+};
+
