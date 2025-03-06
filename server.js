@@ -14,6 +14,7 @@ const app = express();
 app.use(cors({
   origin: 'https://duplicidades-sedesa.netlify.app'
 }));
+app.use(cors())
 app.use(express.json());
 
 app.use("/functions", functionRoutes);
